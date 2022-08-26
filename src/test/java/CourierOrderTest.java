@@ -16,7 +16,6 @@ import static org.junit.Assert.assertNotNull;
 public class CourierOrderTest {
     private String firstName;
     private String lastName;
-
     private String address;
     private int metroStation;
     private String phone;
@@ -68,7 +67,7 @@ public class CourierOrderTest {
         int statusCode = orderResponce.extract().statusCode();
         assertEquals("Status code is incorrecr", SC_CREATED, statusCode);
         track = orderResponce.extract().path("track");
-        assertNotNull("Track is null", track);
+        assert(track > 0);
 
     }
 

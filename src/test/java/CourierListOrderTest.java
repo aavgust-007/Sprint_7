@@ -14,10 +14,10 @@ public class CourierListOrderTest {
     public void createOrderTest() {
 
         orderListClient = new OrderListClient();
-        ValidatableResponse orderListResponce = orderListClient.getList();
-        int statusCode = orderListResponce.extract().statusCode();
-        assertEquals("Status code is incorrecr", SC_OK, statusCode);
-        List<Integer> listOrder = orderListResponce.extract().path("orders");
+        ValidatableResponse orderListResponse = orderListClient.getList();
+        int statusCode = orderListResponse.extract().statusCode();
+        assertEquals("Status code is incorrect", SC_OK, statusCode);
+        List<Integer> listOrder = orderListResponse.extract().path("orders");
         assertNotNull("List order is null", listOrder);
 
     }

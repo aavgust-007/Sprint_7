@@ -5,7 +5,6 @@ import org.junit.Test;
 
 import static org.apache.http.HttpStatus.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class CourierLoginTest {
 
@@ -13,14 +12,14 @@ public class CourierLoginTest {
 
     private Courier courierWrongPassword;
     private CourierClient courierClient;
-    private Courier CourierNonAutorization;
+    private Courier CourierNonAuthorization;
     private int courierId;
 
     @Before
     public void setUp() {
         courier = CourierGenerator.getCourierCreate();
         courierWrongPassword = CourierGenerator.getDuplicateLogin();
-        CourierNonAutorization = CourierGenerator.CourierNonAutorization();
+        CourierNonAuthorization = CourierGenerator.CourierNonAuthorization();
         courierClient = new CourierClient();
 
     }
@@ -37,36 +36,44 @@ public class CourierLoginTest {
         assertEquals("Status code is incorrecr", SC_CREATED, statusCode);
         ValidatableResponse loginResponce = courierClient.login(CourierCredentials.from(courier));
         courierId = loginResponce.extract().path("id");
-        assertNotNull("Id is null", courierId);
+        assert(courierId>0);
     }
 
     @Test
     public void authorizationOfCourierWithAnIncorrectPasswordTest() {
-        ValidatableResponse loginResponce = courierClient.login(CourierCredentials.from(courierWrongPassword));
-        int statusCode = loginResponce.extract().statusCode();
-        assertEquals("Status code is incorrecr", SC_NOT_FOUND, statusCode);
 
+        courierClient.create(courier);
+        ValidatableResponse loginResponce = courierClient.login(CourierCredentials.from(courier));
+        courierId = loginResponce.extract().path("id");
+        ValidatableResponse loginResponce2 = courierClient.login(CourierCredentials.from(courierWrongPassword));
+        int statusCode = loginResponce2.extract().statusCode();
+        assertEquals("Status code is incorrecr", SC_NOT_FOUND, statusCode);
     }
 
     @Test
     public void loginCourierNotWithAllRequiredFieldsTest() {
 
+        courierClient.create(courier);
+        ValidatableResponse loginResponce = courierClient.login(CourierCredentials.from(courier));
+        courierId = loginResponce.extract().path("id");
         ValidatableResponse response = courierClient.loginNotWithPassword(CourierLogin.from(courier));
         int statusCode = response.extract().statusCode();
-        assertEquals("You can create two identical couriers", SC_BAD_REQUEST, statusCode);
+        assertEquals("Incorrect code when registering a user without required fields", SC_BAD_REQUEST, statusCode);
         String message = response.extract().path("message");
-        assertEquals("Insufficient login data",
+        assertEquals("Incorrect message when registering a user without required fields",
                 "Недостаточно данных для входа", message);
+
     }
 
     @Test
     public void AuthorizationErrorUnderNonexistentUserTest() {
 
-        ValidatableResponse response = courierClient.login(CourierCredentials.from(CourierNonAutorization));
+        ValidatableResponse response = courierClient.login(CourierCredentials.from(CourierNonAuthorization));
         int statusCode = response.extract().statusCode();
-        assertEquals("Incorrect response code when logging in under an existing user", SC_NOT_FOUND, statusCode);
+        assertEquals("Invalid response code when logging in with a non-existent user", SC_NOT_FOUND, statusCode);
         String message = response.extract().path("message");
-        assertEquals("It is mistakenly possible to log in under an existing user",
+        assertEquals("\n" +
+                        "Invalid message when logging in under a non-existent user",
                 "Учетная запись не найдена", message);
     }
 }

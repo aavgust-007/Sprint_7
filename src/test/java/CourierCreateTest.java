@@ -1,5 +1,3 @@
-import io.qameta.allure.Description;
-import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import org.junit.After;
 import org.junit.Before;
@@ -48,7 +46,7 @@ public class CourierCreateTest {
     @Test
     public void  errorWhenCreatingDublicateCourierTest(){
 
-        ValidatableResponse   response = courierClient.create(courier);
+        courierClient.create(courier);
         ValidatableResponse   response2 = courierClient.create(courier);
         int statusCode2 = response2.extract().statusCode();
         assertEquals("You can create two identical couriers", SC_CONFLICT , statusCode2);
@@ -57,11 +55,11 @@ public class CourierCreateTest {
     }
 
     @Test
-    public void  сreatingCourierNotWithAllRequiredFields(){
-
+    public void  creatingCourierNotWithAllRequiredFields(){
+        courierClient.create(courier);
         ValidatableResponse   response = courierClient.createLogin(CourierLogin.from(courier));
-        int statusCode2 = response.extract().statusCode();
-        assertEquals("You can create two identical couriers", SC_BAD_REQUEST , statusCode2);
+        int statusCode = response.extract().statusCode();
+        assertEquals("You can create two identical couriers", SC_BAD_REQUEST , statusCode);
         String message = response.extract().path("message");
         assertEquals("Incorrect message when creating a client with incomplete data",
                 "Недостаточно данных для создания учетной записи" , message);
@@ -70,18 +68,15 @@ public class CourierCreateTest {
     @Test
     public void  creatingCourierWithDuplicateLogin(){
 
-        ValidatableResponse   response = courierClient.create(courier);
-        int statusCode1 = response.extract().statusCode();
+        courierClient.create(courier);
         ValidatableResponse   response2 = courierClient.create(courierDublicate);
-        int statusCode2 = response.extract().statusCode();
-        String message = response.extract().path("message");
+        int statusCode2 = response2.extract().statusCode();
+        String message = response2.extract().path("message");
         assertEquals("Incorrect code when creating a client with a duplicate login", SC_CONFLICT , statusCode2);
         assertEquals("Incorrect message when creating a client with a duplicate login",
                 "Этот логин уже используется. Попробуйте другой." , message);
         ValidatableResponse loginResponce = courierClient.login(CourierCredentials.from(courier));
         courierId = loginResponce.extract().path("id");
-        ValidatableResponse loginResponceDublicate = courierClient.login(CourierCredentials.from(courierDublicate));
-        courierIdDublicate = loginResponceDublicate.extract().path("id");
 
     }
 
